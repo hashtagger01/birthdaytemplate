@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>birthday website example </title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        :root { --wine-red: #800020; --gold: #ffd700; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #050505; font-family: 'Dancing Script', cursive; color: white; overflow-x: hidden; }
+        
+        .mute-btn { position: fixed; top: 20px; right: 20px; z-index: 30000; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 10px; border-radius: 50%; cursor: pointer; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.3s; }
+        .container { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+        .emoji { position: absolute; font-size: 25px; }
+        .btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 35px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px); color: white; font-family: inherit; font-size: 1.6rem; cursor: pointer; z-index: 100; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .second { display: none; height: 100vh; width: 100vw; background: rgba(10, 10, 10, 0.85); position: relative; overflow: hidden; }
+        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: clamp(1.2rem, 5vw, 2.5rem); text-align: center; cursor: pointer; z-index: 50; padding: 15px; background: rgba(128, 0, 32, 0.6); border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); width: fit-content; max-width: 80%; line-height: 1.2; white-space: nowrap; }
+        .ring img { position: absolute; width: clamp(55px, 12vw, 90px); height: clamp(55px, 12vw, 90px); border-radius: 50%; object-fit: cover; border: 2px solid white; cursor: pointer; transition: transform 0.3s ease; z-index: 5; }
+        
+        /* NEW SECTIONS CSS */
+        .timeline-section { display: none; min-height: 100vh; flex-direction: column; align-items: center; padding: 80px 20px; background: #050505; }
+        .tm-container { position: relative; width: 100%; max-width: 600px; margin-top: 40px; }
+        .tm-line { position: absolute; left: 50%; transform: translateX(-50%); width: 2px; height: 100%; background: var(--gold); }
+        .tm-item { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 50px; position: relative; }
+        .tm-content { width: 42%; padding: 15px; background: rgba(128, 0, 32, 0.4); border: 1px solid var(--gold); border-radius: 15px; font-size: 1.1rem; }
+        .tm-item:nth-child(even) { flex-direction: row-reverse; }
+
+        .bubbles-section { display: none; height: 100vh; width: 100vw; position: relative; overflow: hidden; justify-content: center; align-items: center; }
+        .bubble { position: absolute; background: rgba(255, 182, 193, 0.3); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid white; transition: 0.3s; }
+
+        .letter-section { display: none; height: 100vh; justify-content: center; align-items: center; background: #050505; padding: 20px; }
+        .letter-box { background: #fff9e6; color: #333; padding: 30px; border-radius: 5px; max-width: 400px; font-family: 'Pacifico', cursive; transform: rotate(-1deg); box-shadow: 10px 10px 20px rgba(0,0,0,0.5); line-height: 1.6; }
+
+        .quiz-section { display: none; height: 100vh; width: 100vw; background: #050505; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .final { display: none; min-height: 100vh; background: #800020; justify-content: center; align-items: center; flex-direction: column; text-align: center; padding: 60px 20px; box-sizing: border-box; }
+        
+        /* FIXED SCRATCH SECTION FOR MOBILE */
+        #scratchSection { display: none; position: fixed; inset: 0; background: #1a1a1a; z-index: 20000; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .scratch-container { position: relative; width: 280px; height: 380px; background: #fff; border-radius: 15px; overflow: hidden; touch-action: none; }
+        #scratchCanvas { position: absolute; top: 0; left: 0; cursor: crosshair; touch-action: none; }
+
+        .coupon-section { display: none; min-height: 100vh; padding: 40px 20px; flex-direction: column; align-items: center; background: var(--wine-red); }
+        .coupon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; width: 100%; max-width: 400px; }
+        .coupon { background: white; color: var(--wine-red); padding: 20px; border: 2px dashed var(--wine-red); border-radius: 10px; font-weight: bold; cursor: pointer; text-align: center; }
+        
+        .next-btn { margin-top: 30px; padding: 12px 30px; border-radius: 30px; border: 1px solid var(--gold); background: transparent; color: var(--gold); cursor: pointer; font-family: inherit; font-size: 1.2rem; z-index: 100; }
+        .modal { position: fixed; inset: 0; display: none; backdrop-filter: blur(15px); justify-content: center; align-items: center; flex-direction: column; z-index: 10000; padding: 20px; }
+        .modal img { width: 80vw; height: 80vw; max-width: 400px; max-height: 400px; border-radius: 20px; border: 3px solid white; object-fit: cover; }
+    </style>
+</head>
+<body id="mainBody">
+
+<button class="mute-btn" id="muteBtn">🔊</button>
+<div class="container" id="box"></div>
+
+<button class="btn" id="btn">Click to Start</button>
+
+<div class="second" id="secondSection">
+    <div class="center-text" onclick="goToTimeline()">put photos <br><span style="font-size: 0.9rem; opacity: 0.8;">(a message)</span></div>
+    <div class="ring" id="ring"></div>
+</div>
+
+<div class="timeline-section" id="timelineSection">
+    <h2 style="color:var(--gold); font-size: 2.5rem;">Our Journey Together</h2>
+    <div class="tm-container">
+        <div class="tm-line"></div>
+        <div class="tm-item"><div class="tm-content"><b>Aug 2025</b><br>a message 1 </div></div>
+        <div class="tm-item"><div class="tm-content"><b>Oct 2025</b><br>a message 2</div></div>
+        <div class="tm-item"><div class="tm-content"><b>Dec 2025</b><br>a message 3</div></div>
+        <div class="tm-item"><div class="tm-content"><b>Today</b><br>Celebrating the best human I know. Happy Birthday!</div></div>
+    </div>
+    <button class="next-btn" onclick="goToBubbles()">Next Surprise...</button>
+</div>
+
+<div class="bubbles-section" id="bubblesSection">
+    <h2 style="position:absolute; top:10%; text-align:center;">Pop 10 bubbles of my feelings!</h2>
+    <div id="bubbles-container"></div>
+    <button class="next-btn" id="bubbleNext" style="display:none; position:relative; z-index:100;" onclick="goToQuiz()">You got them! Now the Quiz...</button>
+</div>
+
+<div class="quiz-section" id="quizSection">
+    <div class="timer-container" style="margin-bottom: 40px; padding: 20px; border-radius: 20px; background: rgba(128, 0, 32, 0.2); border: 1px solid var(--gold);">
+        <div class="timer-display" id="countdownTimer" style="font-size: 2rem; color: var(--gold);">0d 0h 0m 0s</div>
+        <div class="timer-caption" style="font-size: 1.2rem; margin-top: 10px; opacity: 0.9;">that time we had together</div>
+    </div>
+    <div class="quiz-container" style="width: 90%; max-width: 500px; padding: 25px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+        <div class="quiz-question" id="questionText" style="font-size: 1.5rem; margin-bottom: 25px;">Ready for a small test, Kassu?</div>
+        <div class="quiz-options" style="display: flex; gap: 15px; justify-content: center;">
+            <button class="next-btn" style="margin:0;" id="opt1" onclick="nextQuestion()">Yes</button>
+            <button class="next-btn" style="margin:0;" id="opt2" onclick="nextQuestion()">Ji!</button>
+        </div>
+    </div>
+</div>
+
+<div class="letter-section" id="letterSection">
+    <div class="letter-box">
+        Dear person,<br><br>
+        a message 5 <br><br>
+        Forever Yours ❤️
+    </div>
+    <button class="next-btn" onclick="openFinal()" style="position:absolute; bottom:10%;">Final Message</button>
+</div>
+
+<div class="final" id="finalSection">
+    <div id="finalText" style="font-size: 1.5rem; margin-bottom: 20px; padding: 0 20px;"></div>
+    <div id="nameText" style="font-size: 2.5rem; color: var(--gold);"></div>
+    <button id="lastSurpriseBtn" class="btn" style="position:relative; display:none; margin-top:40px; top:auto; left:auto; transform:none;">One Last Surprise...</button>
+</div>
+
+<div id="scratchSection">
+    <h2 style="margin-bottom: 20px;">Rub the card!</h2>
+    <div class="scratch-container">
+        <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <img src="images/best.jpeg" style="width:200px; border-radius:10px;">
+            <p style="color:#800020; font-weight:bold;">Forever & Always ❤️</p>
+        </div>
+        <canvas id="scratchCanvas" width="280" height="380"></canvas>
+    </div>
+    <button class="next-btn" id="couponNext" style="display:none;" onclick="goToCoupons()">Claim your gifts!</button>
+</div>
+
+<div class="coupon-section" id="couponSection">
+    <h2 style="color:var(--gold);">Your Birthday Coupons</h2>
+    <div class="coupon-grid">
+        <div class="coupon" onclick="claim()">FREE<br>Head Massage</div>
+        <div class="coupon" onclick="claim()">WIN<br>Any Argument</div>
+        <div class="coupon" onclick="claim()">ONE<br>Dinner Date</div>
+        <div class="coupon" onclick="claim()">UNLIMITED<br>Hugs</div>
+    </div>
+    <button class="next-btn" onclick="location.reload()">Restart ✨</button>
+</div>
+
+<div class="modal" id="modal"><img id="modalImg" src=""><div id="desc" style="text-align:center; padding-top:10px; font-size:1.4rem;"></div></div>
+<audio id="finalMusic" src="audio/final.mpeg" loop></audio>
+<audio id="specialMusic" src="audio/special_final.mpeg" loop></audio>
+
+<script>
+const bgMusic = document.getElementById("finalMusic");
+const specialMusic = document.getElementById("specialMusic");
+const muteBtn = document.getElementById("muteBtn");
+let isMuted = false;
+
+muteBtn.onclick = () => {
+    isMuted = !isMuted;
+    bgMusic.muted = isMuted;
+    specialMusic.muted = isMuted;
+    muteBtn.innerText = isMuted ? "🔇" : "🔊";
+};
+
+// WHITE ROSES Logic
+const box = document.getElementById("box");
+function createEmoji(){
+    const el = document.createElement("div");
+    el.className = "emoji";
+    const isRose = Math.random() > 0.5;
+    el.innerHTML = isRose ? "🌹" : "❤️";
+    if(isRose) el.style.filter = "grayscale(100%) brightness(200%)";
+    else el.style.color = "#800020";
+    el.style.left = Math.random() * window.innerWidth + "px";
+    let y = -50;
+    box.appendChild(el);
+    const fall = setInterval(() => {
+        y += 2.5; el.style.top = y + "px";
+        if(y > window.innerHeight) { clearInterval(fall); el.remove(); }
+    }, 16);
+}
+setInterval(createEmoji, 400);
+
+// CHASE BUTTON
+let clickCount = 0;
+const startTexts = ["HAPPY", "BIRTHDAY", "name", "text "];
+const btn = document.getElementById("btn");
+btn.onclick = () => {
+    bgMusic.play();
+    if(clickCount < startTexts.length) {
+        btn.innerText = startTexts[clickCount];
+        const hue = Math.floor(Math.random() * 360);
+        btn.style.backgroundColor = `hsla(${hue}, 70%, 50%, 0.4)`;
+        btn.style.left = Math.random() * (window.innerWidth - 200) + 100 + "px";
+        btn.style.top = Math.random() * (window.innerHeight - 150) + 75 + "px";
+    } else {
+        btn.style.display = "none";
+        document.getElementById("secondSection").style.display = "block";
+        createRing();
+    }
+    clickCount++;
+};
+
+const memoryDescriptions = { 
+    1: "message 1",
+    2: "message 2",
+    3: "message 3 ",
+    4: "message 4 ",
+    5: "message 5 ",
+    6: "message 6 ",
+    7: "message 7",
+    8: "message 8 ",
+    9: "message 9 ",
+    10: "message 10",
+    11: "message 11",
+    12: "message 12",
+    13: "message 13",
+    14: "message 14 ",
+    15: "message 15",
+    16: "message 16",
+    17: "message 17",
+    18: "message 18 ",
+    19: "message 19 ",
+    20: "message 20",
+    21: "message 21 ",
+    22: "message 22 ",
+    23: "message 23 ",
+    24: "message 24", 
+};
+
+function createRing(){
+    const ring = document.getElementById("ring");
+    ring.innerHTML = "";
+    const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+    const isSmall = window.innerWidth < 500;
+    const baseR = isSmall ? window.innerWidth * 0.32 : 180; 
+    const stepR = isSmall ? window.innerWidth * 0.28 : 140;
+    const layers = [8, 16]; 
+    const radii = [baseR, baseR + stepR]; 
+    let index = 1;
+    layers.forEach((count, layerIndex) => {
+        for(let i = 0; i < count; i++){
+            if(index > 24) break; 
+            const img = document.createElement("img");
+            img.src = `images/${index}.jpeg`; 
+            const angle = (i / count) * Math.PI * 2;
+            const x = cx + radii[layerIndex] * Math.cos(angle);
+            const y = cy + radii[layerIndex] * Math.sin(angle);
+            img.style.left = `${x - (isSmall?30:45)}px`; img.style.top = `${y - (isSmall?30:45)}px`;
+            const cur = index;
+            img.onclick = () => {
+                const modal = document.getElementById("modal");
+                document.getElementById("modalImg").src = img.src;
+                document.getElementById("desc").innerText = memoryDescriptions[cur] || "Memory ❤️";
+                modal.style.display = "flex";
+            };
+            ring.appendChild(img);
+            index++;
+        }
+    });
+}
+document.getElementById("modal").onclick = function() { this.style.display = "none"; };
+
+function goToTimeline() { document.getElementById("secondSection").style.display = "none"; document.getElementById("timelineSection").style.display = "flex"; document.body.style.overflowY = "auto"; }
+function goToBubbles() { document.getElementById("timelineSection").style.display = "none"; document.getElementById("bubblesSection").style.display = "flex"; document.body.style.overflowY = "hidden"; createBubbles(); }
+function goToQuiz() { document.getElementById("bubblesSection").style.display = "none"; document.getElementById("quizSection").style.display = "flex"; startCountdown(); }
+function goToCoupons() { document.getElementById("scratchSection").style.display = "none"; document.getElementById("couponSection").style.display = "flex"; document.body.style.overflowY = "auto"; }
+function claim() { alert("Yayyy!  ❤️"); }
+
+function createBubbles() {
+    const container = document.getElementById('bubbles-container');
+    container.innerHTML = "";
+    let popped = 0;
+    const words = ["1", "2", "3", "4", "5","6","7", "8","9"];
+    for(let i=0; i<15; i++) {
+        const b = document.createElement('div');
+        b.className = 'bubble'; b.style.width = b.style.height = '80px';
+        b.style.left = Math.random()*80+'%'; b.style.top = Math.random()*80+'%';
+        b.innerText = words[i % words.length];
+        b.onclick = () => {
+            b.style.transform = "scale(0)";
+            popped++;
+            if(popped >= 10) document.getElementById('bubbleNext').style.display = 'block';
+            setTimeout(() => b.remove(), 200);
+        };
+        container.appendChild(b);
+    }
+}
+
+function startCountdown() {
+    const startDate = new Date("August 13, 2025").getTime();
+    setInterval(() => {
+        const diff = new Date().getTime() - startDate;
+        const d = Math.floor(diff / 86400000), h = Math.floor((diff%86400000)/3600000);
+        const m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+        document.getElementById("countdownTimer").innerText = `${d}d ${h}h ${m}m ${s}s`;
+    }, 1000);
+}
+
+let currentQ = 0;
+const quizQuestions =[
+    { q: "ques 1", a: "option a", b: "option b" },
+    { q: "ques 2", a: "option a", b: "option b" },
+    { q: "ques 3", a: "option a", b: "option b" },
+    { q: "ques 4", a: "option a", b: "option b" },
+    { q: "ques 5", a: "option a", b: "option b" },
+    { q: "ques 6", a: "option a", b: "option b" },
+    { q: "ques 7", a: "option a", b: "option b" },
+    { q: "ques 8", a: "option a", b: "option b" },
+    { q: "ques 9", a: "option a", b: "option b" },
+    { q: "ques 10", a:"option a", b: "option b"},
+    { q: "ques 11", a: "option a", b: "option b" },
+];
+
+function nextQuestion() {
+    currentQ++;
+    if (currentQ < quizQuestions.length) {
+        document.getElementById("questionText").innerText = quizQuestions[currentQ].q;
+        document.getElementById("opt1").innerText = quizQuestions[currentQ].a;
+        document.getElementById("opt2").innerText = quizQuestions[currentQ].b;
+    } else {
+        document.getElementById("quizSection").style.display = "none";
+        document.getElementById("letterSection").style.display = "flex";
+    }
+}
+
+function openFinal() {
+    bgMusic.pause(); specialMusic.play();
+    document.getElementById("letterSection").style.display = "none";
+    document.getElementById("finalSection").style.display = "flex";
+    document.body.style.overflowY = "auto";
+    typeWriter("finalText", "line 317 ", 50, () => {
+        typeWriter("nameText", "happy birthday, person ❤️", 80, () => {
+            document.getElementById("lastSurpriseBtn").style.display = "block";
+        });
+    });
+}
+
+function typeWriter(id, text, speed, cb){
+    let i = 0; const el = document.getElementById(id);
+    function t(){ if(i < text.length){ el.innerHTML += text[i++]; setTimeout(t, speed); } else if(cb) cb(); }
+    t();
+}
+
+document.getElementById("lastSurpriseBtn").onclick = () => {
+    document.getElementById("finalSection").style.display = "none";
+    document.getElementById("scratchSection").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    initScratchCard();
+};
+
+/* FIXED SCRATCH LOGIC FOR PHONE */
+function initScratchCard() {
+    const canvas = document.getElementById("scratchCanvas");
+    const ctx = canvas.getContext("2d");
+    const nextBtn = document.getElementById("couponNext");
+    
+    ctx.fillStyle = "#C0C0C0"; ctx.fillRect(0,0,280,380);
+    ctx.font = "24px Dancing Script"; ctx.fillStyle = "#800020"; ctx.fillText("RUB ❤️", 75, 190);
+    
+    let drawing = false;
+
+    const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    };
+
+    const scratch = (e) => {
+        if(!drawing) return;
+        if(e.cancelable) e.preventDefault(); // Stop mobile scrolling while scratching
+
+        const pos = getPos(e);
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath(); ctx.arc(pos.x, pos.y, 35, 0, Math.PI*2); ctx.fill();
+
+        let data = ctx.getImageData(0,0,280,380).data;
+        let count = 0;
+        for(let i=3; i<data.length; i+=4) if(data[i]===0) count++;
+        
+        if(count > data.length/6) { 
+            canvas.style.opacity = "0"; 
+            canvas.style.pointerEvents = "none"; // ALLOW CLICKS THROUGH CANVAS
+            nextBtn.style.display = "block"; 
+            document.body.style.overflowY = "auto";
+        }
+    };
+
+    canvas.addEventListener('mousedown', () => drawing = true);
+    canvas.addEventListener('touchstart', (e) => { drawing = true; scratch(e); }, {passive: false});
+    window.addEventListener('mouseup', () => drawing = false);
+    window.addEventListener('touchend', () => drawing = false);
+    canvas.addEventListener('mousemove', scratch);
+    canvas.addEventListener('touchmove', scratch, {passive: false});
+}
+</script>
+</body>
+</html>
